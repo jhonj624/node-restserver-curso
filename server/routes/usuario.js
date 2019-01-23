@@ -3,10 +3,19 @@ const Usuario = require('../models/usuario');
 const bcrypt = require('bcrypt');
 const _ = require('underscore');
 
+// leo el midleware para verificar token
+// uso lectura con destructuracion
+const { verificacionToken, verificacionAdmin_Role } = require('../middlewares/autenticacion');
+
 const app = express();
 
-app.get('/usuario', function(req, res) {
+app.get('/usuario', verificacionToken, (req, res) => {
 
+    /* return res.json({
+         usuario: req.usuario,
+         nombre: req.usuario.nombre,
+         email: req.usuario.email
+     }); */
     // agregar opciones para búsqueda
     let desde = req.query.desde || 0;
     desde = Number(desde);
@@ -30,7 +39,7 @@ app.get('/usuario', function(req, res) {
                 res.json({
                     ok: true,
                     usuarios,
-                    cuantos: conteo
+                    cuantos: conteo,
                 });
             });
 
@@ -38,8 +47,14 @@ app.get('/usuario', function(req, res) {
 
 });
 
-// se crea el usuario en la DB
-app.post('/usuario', function(req, res) {
+// Crea usuario nuevo en la DB
+app.post('/usuario', [verificacionToken, verificacionAdmin_Role], (req, res) => {
+    // verificación de token
+    /* return res.json({
+        ok: true,
+        usuario: req.usuario,
+    }); */
+
     let body = req.body;
 
     let usuario = new Usuario({
@@ -72,12 +87,12 @@ app.post('/usuario', function(req, res) {
 });
 
 // Para actualización de un registro
-app.put('/usuario/:id', function(req, res) {
+app.put('/usuario/:id', [verificacionToken, verificacionAdmin_Role], (req, res) => {
     let id = req.params.id;
     /*  haciendo uso de la librería *underscore _* para hacer un filtrado de las 
         propiedades válidas que serán modificadas en la BD */
 
-    let body = _.pick(req.body, ['nombre', 'email', 'img', 'role', 'estado']);
+    let body = _.pick(req.body, ['nombre', 'email', 'img', ]);
 
     Usuario.findByIdAndUpdate(id, body, { new: true, runValidators: true }, (err, usuarioDB) => {
         // si existe algún error en la consulta
@@ -98,7 +113,7 @@ app.put('/usuario/:id', function(req, res) {
 
 // Borrado de la BD solo cambiando el estado de activación en la BD, 
 // esto se usa para seguir guardando la información y hacer estadísitcas posteriores
-app.delete('/usuario/:id', function(req, res) {
+app.delete('/usuario/:id', [verificacionToken, verificacionAdmin_Role], (req, res) => {
 
     let id = req.params.id;
 
@@ -106,7 +121,13 @@ app.delete('/usuario/:id', function(req, res) {
         estado: false
     }
     Usuario.findByIdAndUpdate(id, cambiaEstado, { new: true }, (err, usuarioBorrado) => {
-        if (!usuarioBorrado.estado) {
+        if (err) {
+            return res.status(400).json({
+                ok: false,
+                err
+            });
+        }
+        if (usuarioBorrado.estado === false) {
             return res.status(400).json({
                 ok: false,
                 err: {
@@ -114,12 +135,15 @@ app.delete('/usuario/:id', function(req, res) {
                 }
             });
         }
-        if (err) {
+        if (!usuarioBorrado) {
             return res.status(400).json({
                 ok: false,
-                err
+                err: {
+                    message: 'Usuario no encontrado'
+                }
             });
         }
+
 
         res.json({
             ok: true,
