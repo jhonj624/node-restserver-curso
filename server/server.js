@@ -5,7 +5,7 @@ const app = express();
 
 const mongoose = require('mongoose');
 
-
+const path = require('path');
 
 // Body-parser
 const bodyParser = require('body-parser');
@@ -14,6 +14,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // parse application/json
 app.use(bodyParser.json());
+
+// Habilitar la carpeta public
+// se utiliza la libreria path para obtener adecuadamente la la ruta de la carpeta public
+app.use(express.static(path.resolve(__dirname, '../public')));
 
 
 // Configuración global de rutas
@@ -27,4 +31,4 @@ mongoose.connect(process.env.URLDB, (err, res) => {
 
 app.listen(process.env.PORT, () => {
     console.log('Escuchando en el puerto;', process.env.PORT);
-})
+});

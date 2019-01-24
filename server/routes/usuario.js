@@ -3,12 +3,13 @@ const Usuario = require('../models/usuario');
 const bcrypt = require('bcrypt');
 const _ = require('underscore');
 
-// leo el midleware para verificar token
+// leo el middleware para verificar token
 // uso lectura con destructuracion
 const { verificacionToken, verificacionAdmin_Role } = require('../middlewares/autenticacion');
 
 const app = express();
 
+// verificaToken es un middleware
 app.get('/usuario', verificacionToken, (req, res) => {
 
     /* return res.json({
@@ -61,7 +62,8 @@ app.post('/usuario', [verificacionToken, verificacionAdmin_Role], (req, res) => 
         nombre: body.nombre,
         email: body.email,
         password: bcrypt.hashSync(body.password, 10), // Store hash in your password DB
-        role: body.role
+        role: body.role,
+        img: body.img,
     });
 
     // save es un metodo de mongoose

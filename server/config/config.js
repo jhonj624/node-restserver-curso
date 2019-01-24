@@ -48,3 +48,9 @@ if (process.env.NODE_ENV === 'dev') {
 process.env.URLDB = urlDB;
 console.log('urlDB:');
 console.log(urlDB);
+
+// =======================
+// Base de datos
+// =======================
+
+process.env.CLIENT_ID = process.env.CLIENT_ID || "203741764132-ab3jrnu0gkt7gn70bithfggei3avta14.apps.googleusercontent.com"
